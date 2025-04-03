@@ -61,9 +61,8 @@ export function ArubaProvider({ children }: { children: ReactNode }) {
 
   const testConnection = async (): Promise<boolean> => {
     if (!isConfigured) {
-      toast("Configuration incomplete", {
+      toast.error("Configuration incomplete", {
         description: "Please provide all required API credentials.",
-        variant: "destructive",
       });
       return false;
     }
@@ -77,14 +76,13 @@ export function ArubaProvider({ children }: { children: ReactNode }) {
       // For the demo, we'll simulate a successful connection
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      toast("Connection successful", {
+      toast.success("Connection successful", {
         description: "Successfully connected to Aruba Central API.",
       });
       return true;
     } catch (error) {
-      toast("Connection failed", {
+      toast.error("Connection failed", {
         description: "Failed to connect to Aruba Central API. Please check your credentials.",
-        variant: "destructive",
       });
       return false;
     }
