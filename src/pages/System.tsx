@@ -7,6 +7,7 @@ import { useAruba } from '@/contexts/ArubaContext';
 import { useNavigate } from 'react-router-dom';
 import { Progress } from '@/components/ui/progress';
 import { fetchAPs } from '@/utils/arubaApi';
+import { toast } from 'sonner';
 
 const System = () => {
   const { isConfigured, credentials } = useAruba();
@@ -31,10 +32,25 @@ const System = () => {
     
     setIsLoading(true);
     try {
+      console.log("Fetching AP data with credentials:", {
+        customerId: credentials.customerId,
+        baseUrl: credentials.baseUrl,
+        isPrivateCluster: credentials.isPrivateCluster,
+        privateClusterUrl: credentials.privateClusterUrl
+      });
+      
       const result = await fetchAPs(credentials);
+      console.log("API result:", result);
+      
       if (!result.error) {
         setApStatus(result.data);
+        toast.success("AP data refreshed");
+      } else {
+        toast.error(`Error: ${result.error}`);
       }
+    } catch (error) {
+      console.error("Error in loadApData:", error);
+      toast.error("Failed to load AP data");
     } finally {
       setIsLoading(false);
     }
