@@ -12,6 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
 
 const apiRegionOptions = [
+  { label: "WiFi Down Under (Australia)", value: "https://central.wifidownunder.com" },
   { label: "US West 4 (Global)", value: "https://apigw-uswest4.central.arubanetworks.com" },
   { label: "US West (USA)", value: "https://apigw-prod2.central.arubanetworks.com" },
   { label: "US East (USA)", value: "https://apigw-prod1.central.arubanetworks.com" },

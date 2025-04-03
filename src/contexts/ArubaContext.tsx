@@ -26,7 +26,7 @@ const defaultCredentials: ArubaCredentials = {
   clientId: '',
   clientSecret: '',
   token: '',
-  baseUrl: 'https://apigw-uswest4.central.arubanetworks.com',
+  baseUrl: 'https://central.wifidownunder.com',
   groupName: '',
   isPrivateCluster: false,
   privateClusterUrl: '',
