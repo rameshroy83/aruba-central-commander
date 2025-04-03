@@ -1,15 +1,51 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, RefreshCw, Server, Activity } from "lucide-react";
 import { useAruba } from '@/contexts/ArubaContext';
 import { useNavigate } from 'react-router-dom';
 import { Progress } from '@/components/ui/progress';
+import { fetchAPs } from '@/utils/arubaApi';
 
 const System = () => {
-  const { isConfigured } = useAruba();
+  const { isConfigured, credentials } = useAruba();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [apStatus, setApStatus] = useState({
+    total: 0,
+    online: 0,
+    offline: 0,
+    warning: 0,
+  });
+
+  // Mock system data
+  const cpuLoad = 32;
+  const memoryUsage = 45;
+  const diskUsage = 28;
+  const uptime = "14 days, 22 hours, 15 minutes";
+
+  // Function to load AP data from API
+  const loadApData = async () => {
+    if (!isConfigured) return;
+    
+    setIsLoading(true);
+    try {
+      const result = await fetchAPs(credentials);
+      if (!result.error) {
+        setApStatus(result.data);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load data when component mounts or when credentials/configuration changes
+  useEffect(() => {
+    if (isConfigured) {
+      loadApData();
+    }
+  }, [isConfigured, credentials.customerId, credentials.token, credentials.baseUrl]);
 
   if (!isConfigured) {
     return (
@@ -45,19 +81,25 @@ const System = () => {
     );
   }
 
-  // Mock system data
-  const cpuLoad = 32;
-  const memoryUsage = 45;
-  const diskUsage = 28;
-  const uptime = "14 days, 22 hours, 15 minutes";
-
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">System Information</h1>
-        <p className="text-muted-foreground">
-          View system status and information
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">System Information</h1>
+          <p className="text-muted-foreground">
+            View system status and information
+          </p>
+        </div>
+        {isConfigured && (
+          <Button 
+            variant="outline" 
+            onClick={loadApData} 
+            disabled={isLoading}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh Data
+          </Button>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -108,8 +150,8 @@ const System = () => {
               <CardTitle>System Status</CardTitle>
               <CardDescription>Current system information and status</CardDescription>
             </div>
-            <Button variant="outline">
-              <RefreshCw className="mr-2 h-4 w-4" />
+            <Button variant="outline" onClick={loadApData} disabled={isLoading}>
+              <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
           </div>
@@ -125,19 +167,19 @@ const System = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Region:</span>
-                  <span>US West</span>
+                  <span>{credentials.isPrivateCluster ? "Private Cluster" : "Public"}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Last Login:</span>
-                  <span>2023-04-03 09:45 UTC</span>
+                  <span>{new Date().toISOString().split('T')[0]} {new Date().toTimeString().split(' ')[0]} UTC</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Customer ID:</span>
-                  <span>ABC123456</span>
+                  <span>{credentials.customerId || "Not configured"}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Current Group:</span>
-                  <span>Campus-Main</span>
+                  <span>{credentials.groupName || "Default Group"}</span>
                 </div>
               </div>
             </div>
@@ -176,8 +218,8 @@ const System = () => {
               <div className="p-3 flex gap-3">
                 <Activity className="h-5 w-5 text-green-500 flex-shrink-0" />
                 <div>
-                  <p className="font-medium">API Authentication Successful</p>
-                  <p className="text-sm text-muted-foreground">2023-04-03 09:45:12 UTC</p>
+                  <p className="font-medium">AP Count: {apStatus.total} ({apStatus.online} online)</p>
+                  <p className="text-sm text-muted-foreground">{new Date().toISOString()}</p>
                 </div>
               </div>
               <div className="p-3 flex gap-3">

@@ -1,31 +1,56 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Network, Wifi, Settings, AlertTriangle, Server, Activity, CheckCircle } from "lucide-react";
+import { Network, Wifi, Settings, AlertTriangle, Server, Activity, CheckCircle, RefreshCw } from "lucide-react";
 import { useAruba } from '@/contexts/ArubaContext';
 import { useNavigate } from 'react-router-dom';
+import { fetchAPs } from '@/utils/arubaApi';
 
 const Dashboard = () => {
-  const { isConfigured } = useAruba();
+  const { isConfigured, credentials } = useAruba();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Mock data for dashboard
-  const apStatus = {
-    total: 128,
-    online: 120,
-    offline: 8,
-    warning: 4,
-  };
+  // State to store AP and Tunnel status
+  const [apStatus, setApStatus] = useState({
+    total: 0,
+    online: 0,
+    offline: 0,
+    warning: 0,
+  });
 
+  // Mock data for tunnel status
   const tunnelStatus = {
     total: 45,
     up: 42,
     down: 3,
     warning: 1,
   };
+
+  // Function to load AP data from API
+  const loadApData = async () => {
+    if (!isConfigured) return;
+    
+    setIsLoading(true);
+    try {
+      const result = await fetchAPs(credentials);
+      if (!result.error) {
+        setApStatus(result.data);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load data when component mounts or when credentials/configuration changes
+  useEffect(() => {
+    if (isConfigured) {
+      loadApData();
+    }
+  }, [isConfigured, credentials.customerId, credentials.token, credentials.baseUrl]);
 
   return (
     <div className="space-y-6">
@@ -36,13 +61,22 @@ const Dashboard = () => {
             Monitor and manage your Aruba Central environment
           </p>
         </div>
-        {!isConfigured && (
+        {!isConfigured ? (
           <Button 
             onClick={() => navigate('/settings')}
             className="bg-aruba hover:bg-aruba-dark"
           >
             <Settings className="mr-2 h-4 w-4" />
             Configure API Settings
+          </Button>
+        ) : (
+          <Button 
+            variant="outline" 
+            onClick={loadApData} 
+            disabled={isLoading}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh Data
           </Button>
         )}
       </div>
@@ -133,7 +167,7 @@ const Dashboard = () => {
                 <Activity className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">Healthy</div>
+                <div className="text-2xl font-bold">{isLoading ? "Checking..." : "Healthy"}</div>
                 <p className="text-xs text-muted-foreground">
                   All systems operational
                 </p>
