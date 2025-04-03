@@ -9,6 +9,8 @@ interface ArubaCredentials {
   token: string;
   baseUrl: string;
   groupName: string;
+  isPrivateCluster: boolean;
+  privateClusterUrl: string;
 }
 
 interface ArubaContextType {
@@ -26,6 +28,8 @@ const defaultCredentials: ArubaCredentials = {
   token: '',
   baseUrl: 'https://apigw-uswest4.central.arubanetworks.com',
   groupName: '',
+  isPrivateCluster: false,
+  privateClusterUrl: '',
 };
 
 const ArubaContext = createContext<ArubaContextType | undefined>(undefined);
@@ -36,7 +40,8 @@ export function ArubaProvider({ children }: { children: ReactNode }) {
     return saved ? JSON.parse(saved) : defaultCredentials;
   });
 
-  const isConfigured = !!credentials.customerId && !!credentials.token;
+  const isConfigured = !!credentials.customerId && !!credentials.token && 
+    (!credentials.isPrivateCluster || (credentials.isPrivateCluster && !!credentials.privateClusterUrl));
 
   const updateCredentials = (creds: Partial<ArubaCredentials>) => {
     const updated = { ...credentials, ...creds };

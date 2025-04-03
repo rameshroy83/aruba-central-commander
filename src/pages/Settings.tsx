@@ -9,6 +9,7 @@ import { Shield, RefreshCw, AlertTriangle, Save, Trash2 } from "lucide-react";
 import { useAruba } from '@/contexts/ArubaContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
 
 const apiRegionOptions = [
   { label: "US West 4 (Global)", value: "https://apigw-uswest4.central.arubanetworks.com" },
@@ -80,22 +81,39 @@ const Settings = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="baseUrl">API Region</Label>
-                    <Select 
-                      value={credentials.baseUrl}
-                      onValueChange={(value) => updateCredentials({ baseUrl: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select API region" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {apiRegionOptions.map(option => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center gap-2 pb-2">
+                      <Label htmlFor="isPrivateCluster" className="flex-grow">Private Cluster</Label>
+                      <Switch 
+                        id="isPrivateCluster"
+                        checked={credentials.isPrivateCluster}
+                        onCheckedChange={(checked) => updateCredentials({ isPrivateCluster: checked })}
+                      />
+                    </div>
+                    
+                    {credentials.isPrivateCluster ? (
+                      <Input
+                        id="privateClusterUrl"
+                        value={credentials.privateClusterUrl}
+                        onChange={(e) => updateCredentials({ privateClusterUrl: e.target.value })}
+                        placeholder="Enter your private cluster URL"
+                      />
+                    ) : (
+                      <Select 
+                        value={credentials.baseUrl}
+                        onValueChange={(value) => updateCredentials({ baseUrl: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select API region" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {apiRegionOptions.map(option => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
                 </div>
                 
